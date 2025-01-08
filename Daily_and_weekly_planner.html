@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Planner</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('imageplanner.webp');
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+        }
+
+        .planner-container {
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        .task-input {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        #task-name {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        #task-category {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        #add-task {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #add-task:hover {
+            background-color: #218838;
+        }
+
+        .task-list ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .task-list li {
+            background-color: #f8f9fa;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .task-list button {
+            background-color: #17a2b8;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .task-list button:hover {
+            background-color: #138496;
+        }
+
+        .calendar-view {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .calendar-header {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            text-align: center;
+            font-weight: bold;
+            background-color: #f1f1f1;
+            padding: 10px 0;
+        }
+
+        .calendar-header div {
+            text-align: center;
+            color: #333;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+        }
+
+        .calendar-day {
+            background-color: #e9ecef;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .calendar-day h3 {
+            margin: 0;
+            color: #333;
+        }
+
+        .completed {
+            text-decoration: line-through;
+            color: #6c757d;
+        }
+
+        .month-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+
+        .month-navigation button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .month-navigation button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="planner-container">
+        <h1>Study Planner</h1>
+        <div class="task-input">
+            <input type="text" id="task-name" placeholder="Enter Task...">
+            <select id="task-category">
+                <option value="Math">Math</option>
+                <option value="Science">Science</option>
+                <option value="English">English</option>
+                <option value="Other">Other</option>
+            </select>
+            <button id="add-task">Add Task</button>
+        </div>
+
+        <div class="task-list">
+            <h2>Daily Tasks</h2>
+            <ul id="task-list"></ul>
+        </div>
+
+        <div class="calendar-view">
+            <h2 id="month-year"></h2>
+            <div class="month-navigation">
+                <button onclick="previousMonth()">Previous</button>
+                <button onclick="nextMonth()">Next</button>
+            </div>
+            <div class="calendar-header">
+                <div>Sunday</div>
+                <div>Monday</div>
+                <div>Tuesday</div>
+                <div>Wednesday</div>
+                <div>Thursday</div>
+                <div>Friday</div>
+                <div>Saturday</div>
+            </div>
+            <div class="calendar-grid" id="calendar"></div>
+        </div>
+    </div>
+
+    <script>
+        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        let currentDate = new Date();
+
+        document.getElementById('add-task').addEventListener('click', () => {
+            const taskName = document.getElementById('task-name').value;
+            const taskCategory = document.getElementById('task-category').value;
+
+            if (taskName) {
+                tasks.push({ name: taskName, category: taskCategory, completed: false });
+                saveTasks();
+                renderTasks();
+                document.getElementById('task-name').value = '';
+            } else {
+                alert('Please enter a task name');
+            }
+        });
+
+        function saveTasks() {
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+
+        function renderTasks() {
+            const taskList = document.getElementById('task-list');
+            taskList.innerHTML = '';
+            tasks.forEach((task, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span class="${task.completed ? 'completed' : ''}" draggable="true" ondragstart="drag(event)">${task.name} - ${task.category}</span>
+                    <!--<button onclick="toggleComplete(${index})">${task.completed ? 'Undo' : 'Completed'}</button>-->
+                    <button onclick="completeTask(${index})">Completed</button>
+                `;
+                taskList.appendChild(li);
+            });
+        }
+
+        function toggleComplete(index) {
+            tasks[index].completed = !tasks[index].completed;
+            saveTasks();
+            renderTasks();
+        }
+
+        function generateCalendar() {
+            const calendar = document.getElementById('calendar');
+            calendar.innerHTML = '';
+
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            document.getElementById('month-year').innerText = `${monthNames[month]} ${year}`;
+
+            for (let i = 0; i < firstDay; i++) {
+                const emptyDiv = document.createElement('div');
+                calendar.appendChild(emptyDiv);
+            }
+
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dayDiv = document.createElement('div');
+                dayDiv.classList.add('calendar-day');
+                dayDiv.setAttribute('ondrop', 'drop(event)');
+                dayDiv.setAttribute('ondragover', 'allowDrop(event)');
+                dayDiv.innerHTML = `<h3>${i}</h3>`;
+                calendar.appendChild(dayDiv);
+            }
+        }
+
+        function previousMonth() {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            generateCalendar();
+        }
+
+        function nextMonth() {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            generateCalendar();
+        }
+
+        function allowDrop(ev) {
+            ev.preventDefault();
+        }
+
+        function drag(ev) {
+            ev.dataTransfer.setData('text', ev.target.innerText);
+        }
+
+        function drop(ev) {
+            ev.preventDefault();
+            const data = ev.dataTransfer.getData('text');
+            ev.target.innerHTML += `<p>${data}</p>`;
+            const taskIndex = tasks.findIndex(task => `${task.name} - ${task.category}` === data);
+            if (taskIndex > -1) tasks[taskIndex].completed = true;
+            saveTasks();
+            renderTasks();
+        }
+
+        window.addEventListener('load', () => {
+            renderTasks();
+            generateCalendar();
+        });
+    </script>
+</body>
+</html>

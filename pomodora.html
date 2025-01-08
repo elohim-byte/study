@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pomodoro Timer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 500px;
+            margin: 100px auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .timer {
+            font-size: 3em;
+            margin: 20px 0;
+            color: #333;
+        }
+        .buttons {
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            margin: 0 10px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+        }
+        button:active {
+            background-color: #ddd;
+        }
+        .settings {
+            margin-top: 30px;
+        }
+        input {
+            padding: 5px;
+            width: 60px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Pomodoro Timer</h1>
+
+        <div class="timer" id="timer-display">25:00</div>
+
+        <div class="buttons">
+            <button onclick="startTimer()">Start</button>
+            <button onclick="pauseTimer()">Pause</button>
+            <button onclick="resetTimer()">Reset</button>
+        </div>
+
+        <div class="settings">
+            <label for="work-time">Work Time (min): </label>
+            <input type="number" id="work-time" value="25">
+            <label for="break-time">Break Time (min): </label>
+            <input type="number" id="break-time" value="5">
+        </div>
+    </div>
+
+    <script>
+        let workTime = 25 * 60; // Default work time (25 minutes)
+        let breakTime = 5 * 60; // Default break time (5 minutes)
+        let isWorkSession = true;
+        let timer;
+        let isRunning = false;
+
+        const timerDisplay = document.getElementById("timer-display");
+
+        // Update timer display
+        function updateTimerDisplay(timeInSeconds) {
+            let minutes = Math.floor(timeInSeconds / 60);
+            let seconds = timeInSeconds % 60;
+            timerDisplay.textContent = `${formatTime(minutes)}:${formatTime(seconds)}`;
+        }
+
+        // Format time to ensure two digits
+        function formatTime(time) {
+            return time < 10 ? '0' + time : time;
+        }
+
+        // Start or resume the timer
+        function startTimer() {
+            if (isRunning) return;
+
+            isRunning = true;
+            timer = setInterval(() => {
+                if (isWorkSession) {
+                    if (workTime <= 0) {
+                        clearInterval(timer);
+                        playNotification();
+                        isWorkSession = false;
+                        workTime = parseInt(document.getElementById("work-time").value) * 60;
+                    } else {
+                        workTime--;
+                        updateTimerDisplay(workTime);
+                    }
+                } else {
+                    if (breakTime <= 0) {
+                        clearInterval(timer);
+                        playNotification();
+                        isWorkSession = true;
+                        breakTime = parseInt(document.getElementById("break-time").value) * 60;
+                    } else {
+                        breakTime--;
+                        updateTimerDisplay(breakTime);
+                    }
+                }
+            }, 1000);
+        }
+
+        // Pause the timer
+        function pauseTimer() {
+            clearInterval(timer);
+            isRunning = false;
+        }
+
+        // Reset the timer
+        function resetTimer() {
+            clearInterval(timer);
+            isRunning = false;
+            workTime = parseInt(document.getElementById("work-time").value) * 60;
+            breakTime = parseInt(document.getElementById("break-time").value) * 60;
+            isWorkSession = true;
+            updateTimerDisplay(workTime);
+        }
+
+        // Play notification sound
+        function playNotification() {
+            const audio = new Audio('https://www.soundjay.com/button/beep-07.wav');
+            audio.play();
+        }
+
+        // Initialize timer display
+        updateTimerDisplay(workTime);
+
+    </script>
+
+</body>
+</html>
